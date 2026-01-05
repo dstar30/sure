@@ -34,8 +34,7 @@ class Transaction < ApplicationRecord
 
   def pending?
     extra_data = extra.is_a?(Hash) ? extra : {}
-    ActiveModel::Type::Boolean.new.cast(extra_data.dig("simplefin", "pending")) ||
-      ActiveModel::Type::Boolean.new.cast(extra_data.dig("plaid", "pending"))
+    ActiveModel::Type::Boolean.new.cast(extra_data.dig("plaid", "pending"))
   rescue
     false
   end

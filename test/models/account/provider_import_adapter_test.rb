@@ -36,25 +36,6 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
     end
   end
 
-  test "imports transaction with minimal parameters" do
-    assert_difference "@account.entries.count", 1 do
-      entry = @adapter.import_transaction(
-        external_id: "simplefin_abc",
-        amount: 50.00,
-        currency: "USD",
-        date: Date.today,
-        name: "Simple Transaction",
-        source: "simplefin"
-      )
-
-      assert_equal 50.00, entry.amount
-      assert_equal "simplefin_abc", entry.external_id
-      assert_equal "simplefin", entry.source
-      assert_nil entry.transaction.category_id
-      assert_nil entry.transaction.merchant_id
-    end
-  end
-
   test "updates existing transaction instead of creating duplicate" do
     # Create initial transaction
     entry = @adapter.import_transaction(
@@ -80,38 +61,6 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
       assert_equal entry.id, updated_entry.id
       assert_equal 200.00, updated_entry.amount
       assert_equal "Updated Name", updated_entry.name
-    end
-  end
-
-  test "allows same external_id from different sources without collision" do
-    # Create transaction from SimpleFin with ID "transaction_123"
-    simplefin_entry = @adapter.import_transaction(
-      external_id: "transaction_123",
-      amount: 100.00,
-      currency: "USD",
-      date: Date.today,
-      name: "SimpleFin Transaction",
-      source: "simplefin"
-    )
-
-    # Create transaction from Plaid with same ID "transaction_123" - should NOT collide
-    # because external_id is unique per (account, source) combination
-    assert_difference "@account.entries.count", 1 do
-      plaid_entry = @adapter.import_transaction(
-        external_id: "transaction_123",
-        amount: 200.00,
-        currency: "USD",
-        date: Date.today,
-        name: "Plaid Transaction",
-        source: "plaid"
-      )
-
-      # Should be different entries
-      assert_not_equal simplefin_entry.id, plaid_entry.id
-      assert_equal "simplefin", simplefin_entry.source
-      assert_equal "plaid", plaid_entry.source
-      assert_equal "transaction_123", simplefin_entry.external_id
-      assert_equal "transaction_123", plaid_entry.external_id
     end
   end
 
@@ -201,17 +150,6 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
     @account.reload
     assert_equal 5000.00, @account.balance
     assert_equal 4500.00, @account.cash_balance
-  end
-
-  test "updates account balance without cash_balance" do
-    @adapter.update_balance(
-      balance: 3000.00,
-      source: "simplefin"
-    )
-
-    @account.reload
-    assert_equal 3000.00, @account.balance
-    assert_equal 3000.00, @account.cash_balance
   end
 
   test "imports holding with all parameters" do
@@ -714,35 +652,6 @@ class Account::ProviderImportAdapterTest < ActiveSupport::TestCase
 
       # Should be a different entry
       assert_not_equal manual_entry.id, entry.id
-    end
-  end
-
-  test "does not claim transaction that already has external_id from different provider" do
-    # Create a transaction already synced from SimpleFin
-    simplefin_entry = @adapter.import_transaction(
-      external_id: "simplefin_123",
-      amount: 30.00,
-      currency: "USD",
-      date: Date.today,
-      name: "Gas Station",
-      source: "simplefin"
-    )
-
-    # Provider (Lunchflow) syncs matching transaction - should create new entry, not claim SimpleFin's
-    assert_difference "@account.entries.count", 1 do
-      entry = @adapter.import_transaction(
-        external_id: "lunchflow_gas",
-        amount: 30.00,
-        currency: "USD",
-        date: Date.today,
-        name: "Gas Station",
-        source: "lunchflow"
-      )
-
-      # Should be a different entry because SimpleFin already claimed it
-      assert_not_equal simplefin_entry.id, entry.id
-      assert_equal "lunchflow", entry.source
-      assert_equal "simplefin", simplefin_entry.reload.source
     end
   end
 

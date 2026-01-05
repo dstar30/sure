@@ -9,7 +9,7 @@ class Rule::ConditionFilter::TransactionDetails < Rule::ConditionFilter
 
   def apply(scope, operator, value)
     # Search within the transaction's extra JSONB field
-    # This allows matching on provider-specific details like SimpleFin payee, description, memo
+    # This allows matching on provider-specific details like Plaid payee, description, memo
 
     # Validate operator using parent class method
     sanitize_operator(operator)

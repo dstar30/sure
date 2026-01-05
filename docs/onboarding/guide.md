@@ -38,7 +38,6 @@ When you arrive at the main dashboard, showing **No accounts yet**, you’re all
 > 
 > - **Lunch Flow** (WIP)
 > - [**Plaid**](/docs/hosting/plaid.md)
-> - **SimpleFin** (WIP)
 >
 > Even if you use an integration, we still recommend reading through this guide to understand **account types** and how they work in Sure.
 

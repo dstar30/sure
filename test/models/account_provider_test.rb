@@ -13,12 +13,6 @@ class AccountProviderTest < ActiveSupport::TestCase
       name: "Test Bank"
     )
 
-    @simplefin_item = SimplefinItem.create!(
-      family: @family,
-      name: "Test SimpleFin Bank",
-      access_url: "https://example.com/access"
-    )
-
     # Create provider accounts
     @plaid_account = PlaidAccount.create!(
       plaid_item: @plaid_item,
@@ -28,32 +22,6 @@ class AccountProviderTest < ActiveSupport::TestCase
       currency: "USD",
       current_balance: 1000
     )
-
-    @simplefin_account = SimplefinAccount.create!(
-      simplefin_item: @simplefin_item,
-      name: "SimpleFin Checking",
-      account_id: "sf_123",
-      account_type: "checking",
-      currency: "USD",
-      current_balance: 2000
-    )
-  end
-
-  test "allows an account to have multiple different provider types" do
-    # Should be able to link both Plaid and SimpleFin to same account
-    plaid_provider = AccountProvider.create!(
-      account: @account,
-      provider: @plaid_account
-    )
-
-    simplefin_provider = AccountProvider.create!(
-      account: @account,
-      provider: @simplefin_account
-    )
-
-    assert_equal 2, @account.account_providers.count
-    assert_includes @account.account_providers, plaid_provider
-    assert_includes @account.account_providers, simplefin_provider
   end
 
   test "prevents duplicate provider type for same account" do
@@ -113,20 +81,5 @@ class AccountProviderTest < ActiveSupport::TestCase
     assert_kind_of Provider::PlaidAdapter, adapter
     assert_equal "plaid", adapter.provider_name
     assert_equal @account, adapter.account
-  end
-
-  test "provider_name delegates to adapter" do
-    plaid_provider = AccountProvider.create!(
-      account: @account,
-      provider: @plaid_account
-    )
-
-    simplefin_provider = AccountProvider.create!(
-      account: accounts(:investment),
-      provider: @simplefin_account
-    )
-
-    assert_equal "plaid", plaid_provider.provider_name
-    assert_equal "simplefin", simplefin_provider.provider_name
   end
 end

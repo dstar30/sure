@@ -404,7 +404,7 @@ Execution flow:
 1. CNPG Cluster (if enabled) and other resources are created.
 2. `sure-migrate` Job (post-install/post-upgrade hook) waits for the RW service to accept connections.
 3. `db:prepare` runs; safe and idempotent across fresh installs and upgrades.
-4. Optional data backfills (like SimpleFin encryption) run in their own post hooks.
+4. Optional data backfills run in their own post hooks.
 
 To use the initContainer strategy instead (or in addition as a safety net):
 
@@ -413,31 +413,6 @@ migrations:
   strategy: initContainer
   initContainer:
     enabled: true
-```
-
-## SimpleFin encryption backfill
-
-- SimpleFin encryption is optional. If you enable it, you must provide Active Record Encryption keys.
-- The backfill Job runs a safe, idempotent Rake task to encrypt existing `access_url` values.
-
-```yaml
-simplefin:
-  encryption:
-    enabled: true
-    backfill:
-      enabled: true
-      dryRun: true  # set false to actually write changes
-
-rails:
-  # Provide encryption keys via an existing secret or below values (for testing only)
-  existingSecret: my-app-secret
-  # or
-  secret:
-    enabled: true
-    values:
-      ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY: "..."
-      ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY: "..."
-      ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT: "..."
 ```
 
 ## Ingress

@@ -25,7 +25,7 @@ class Account < ApplicationRecord
   scope :manual, -> {
     left_joins(:account_providers)
       .where(account_providers: { id: nil })
-      .where(plaid_account_id: nil, simplefin_account_id: nil)
+      .where(plaid_account_id: nil)
   }
 
   scope :visible_manual, -> {
@@ -85,54 +85,6 @@ class Account < ApplicationRecord
       account
     end
 
-
-    def create_from_simplefin_account(simplefin_account, account_type, subtype = nil)
-      # Respect user choice when provided; otherwise infer a sensible default
-      # Require an explicit account_type; do not infer on the backend
-      if account_type.blank? || account_type.to_s == "unknown"
-        raise ArgumentError, "account_type is required when creating an account from SimpleFIN"
-      end
-
-      # Get the balance from SimpleFin
-      balance = simplefin_account.current_balance || simplefin_account.available_balance || 0
-
-      # SimpleFin returns negative balances for credit cards (liabilities)
-      # But Sure expects positive balances for liabilities
-      if account_type == "CreditCard" || account_type == "Loan"
-        balance = balance.abs
-      end
-
-      # Calculate cash balance correctly for investment accounts
-      cash_balance = balance
-      if account_type == "Investment"
-        begin
-          calculator = SimplefinAccount::Investments::BalanceCalculator.new(simplefin_account)
-          calculated = calculator.cash_balance
-          cash_balance = calculated unless calculated.nil?
-        rescue => e
-          Rails.logger.warn(
-            "Investment cash_balance calculation failed for " \
-            "SimpleFin account #{simplefin_account.id}: #{e.class} - #{e.message}"
-          )
-          # Fallback to zero as suggested
-          cash_balance = 0
-        end
-      end
-
-      attributes = {
-        family: simplefin_account.simplefin_item.family,
-        name: simplefin_account.name,
-        balance: balance,
-        cash_balance: cash_balance,
-        currency: simplefin_account.currency,
-        accountable_type: account_type,
-        accountable_attributes: build_simplefin_accountable_attributes(simplefin_account, account_type, subtype),
-        simplefin_account_id: simplefin_account.id
-      }
-
-      create_and_sync(attributes)
-    end
-
     def create_from_enable_banking_account(enable_banking_account, account_type, subtype = nil)
       # Get the balance from Enable Banking
       balance = enable_banking_account.current_balance || 0
@@ -167,25 +119,6 @@ class Account < ApplicationRecord
 
     private
 
-      def build_simplefin_accountable_attributes(simplefin_account, account_type, subtype)
-        attributes = {}
-        attributes[:subtype] = subtype if subtype.present?
-
-        # Set account-type-specific attributes from SimpleFin data
-        case account_type
-        when "CreditCard"
-          # For credit cards, available_balance often represents available credit
-          if simplefin_account.available_balance.present? && simplefin_account.available_balance > 0
-            attributes[:available_credit] = simplefin_account.available_balance
-          end
-        when "Loan"
-          # For loans, we might get additional data from the raw_payload
-          # This is where loan-specific information could be extracted if available
-          # Currently we don't have specific loan fields from SimpleFin protocol
-        end
-
-        attributes
-      end
   end
 
   def institution_name

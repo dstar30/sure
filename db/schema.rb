@@ -45,7 +45,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_15_100443) do
     t.decimal "cash_balance", precision: 19, scale: 4, default: "0.0"
     t.jsonb "locked_attributes", default: {}
     t.string "status", default: "active"
-    t.uuid "simplefin_account_id"
     t.string "institution_name"
     t.string "institution_domain"
     t.text "notes"
@@ -58,7 +57,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_15_100443) do
     t.index ["family_id"], name: "index_accounts_on_family_id"
     t.index ["import_id"], name: "index_accounts_on_import_id"
     t.index ["plaid_account_id"], name: "index_accounts_on_plaid_account_id"
-    t.index ["simplefin_account_id"], name: "index_accounts_on_simplefin_account_id"
     t.index ["status"], name: "index_accounts_on_status"
   end
 
@@ -948,52 +946,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_15_100443) do
     t.index ["var"], name: "index_settings_on_var", unique: true
   end
 
-  create_table "simplefin_accounts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "simplefin_item_id", null: false
-    t.string "name"
-    t.string "account_id"
-    t.string "currency"
-    t.decimal "current_balance", precision: 19, scale: 4
-    t.decimal "available_balance", precision: 19, scale: 4
-    t.string "account_type"
-    t.string "account_subtype"
-    t.jsonb "raw_payload"
-    t.jsonb "raw_transactions_payload"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "balance_date"
-    t.jsonb "extra"
-    t.jsonb "org_data"
-    t.jsonb "raw_holdings_payload"
-    t.index ["account_id"], name: "index_simplefin_accounts_on_account_id"
-    t.index ["simplefin_item_id", "account_id"], name: "idx_unique_sfa_per_item_and_upstream", unique: true, where: "(account_id IS NOT NULL)"
-    t.index ["simplefin_item_id"], name: "index_simplefin_accounts_on_simplefin_item_id"
-  end
-
-  create_table "simplefin_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "family_id", null: false
-    t.text "access_url"
-    t.string "name"
-    t.string "institution_id"
-    t.string "institution_name"
-    t.string "institution_url"
-    t.string "status", default: "good"
-    t.boolean "scheduled_for_deletion", default: false
-    t.jsonb "raw_payload"
-    t.jsonb "raw_institution_payload"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.boolean "pending_account_setup", default: false, null: false
-    t.string "institution_domain"
-    t.string "institution_color"
-    t.date "sync_start_date"
-    t.index ["family_id"], name: "index_simplefin_items_on_family_id"
-    t.index ["institution_domain"], name: "index_simplefin_items_on_institution_domain"
-    t.index ["institution_id"], name: "index_simplefin_items_on_institution_id"
-    t.index ["institution_name"], name: "index_simplefin_items_on_institution_name"
-    t.index ["status"], name: "index_simplefin_items_on_status"
-  end
-
   create_table "subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "family_id", null: false
     t.string "status", null: false
@@ -1161,7 +1113,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_15_100443) do
   add_foreign_key "accounts", "families"
   add_foreign_key "accounts", "imports"
   add_foreign_key "accounts", "plaid_accounts"
-  add_foreign_key "accounts", "simplefin_accounts"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "api_keys", "users"
@@ -1213,8 +1164,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_15_100443) do
   add_foreign_key "security_prices", "securities"
   add_foreign_key "sessions", "impersonation_sessions", column: "active_impersonator_session_id"
   add_foreign_key "sessions", "users"
-  add_foreign_key "simplefin_accounts", "simplefin_items"
-  add_foreign_key "simplefin_items", "families"
   add_foreign_key "subscriptions", "families"
   add_foreign_key "syncs", "syncs", column: "parent_id"
   add_foreign_key "taggings", "tags"

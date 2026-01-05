@@ -54,7 +54,7 @@ rails g provider:global plaid \
 - ✅ Provider charges per-customer
 - ✅ Users bring their own API keys
 - ✅ Data isolation required between families
-- ✅ Examples: Lunch Flow, SimpleFIN, YNAB, personal bank APIs
+- ✅ Examples: Lunch Flow, YNAB, personal bank APIs
 
 ---
 
@@ -150,7 +150,7 @@ This single command generates:
 | **UI location** | `/settings/providers` (always) | `/settings/providers` (self-hosted only) |
 | **ENV variable support** | ❌ No (per-family can't use ENV) | ✅ Yes (fallback) |
 | **Use case** | User brings own API key | Platform provides API access |
-| **Examples** | Lunch Flow, SimpleFIN, YNAB | Plaid, OpenAI, TwelveData |
+| **Examples** | Lunch Flow, YNAB | Plaid, OpenAI, TwelveData |
 
 ---
 

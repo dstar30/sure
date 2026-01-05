@@ -7,12 +7,12 @@ class Account::ProviderImportAdapter
 
   # Imports a transaction from a provider
   #
-  # @param external_id [String] Unique identifier from the provider (e.g., "plaid_12345", "simplefin_abc")
+  # @param external_id [String] Unique identifier from the provider (e.g., "plaid_12345")
   # @param amount [BigDecimal, Numeric] Transaction amount
   # @param currency [String] Currency code (e.g., "USD")
   # @param date [Date, String] Transaction date
   # @param name [String] Transaction name/description
-  # @param source [String] Provider name (e.g., "plaid", "simplefin")
+  # @param source [String] Provider name (e.g., "plaid")
   # @param category_id [Integer, nil] Optional category ID
   # @param merchant [Merchant, nil] Optional merchant object
   # @param notes [String, nil] Optional transaction notes/memo
@@ -134,7 +134,7 @@ class Account::ProviderImportAdapter
 
     Account.transaction do
       # Two strategies for finding/creating holdings:
-      # 1. By external_id (SimpleFin approach) - tracks each holding uniquely
+      # 1. By external_id - tracks each holding uniquely
       # 2. By security+date+currency (Plaid approach) - overwrites holdings for same security/date
       holding = nil
 

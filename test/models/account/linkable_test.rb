@@ -39,7 +39,6 @@ class Account::LinkableTest < ActiveSupport::TestCase
     AccountProvider.create!(account: @account, provider: plaid_account)
 
     assert @account.linked_to?("PlaidAccount")
-    refute @account.linked_to?("SimplefinAccount")
   end
 
   test "can_delete_holdings? returns true for unlinked accounts" do

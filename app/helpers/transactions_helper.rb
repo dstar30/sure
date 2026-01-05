@@ -35,44 +35,16 @@ module TransactionsHelper
 
     extra = tx.extra
 
-    if extra.is_a?(Hash) && extra["simplefin"].present?
-      sf = extra["simplefin"]
-      simple = {
-        payee: sf.is_a?(Hash) ? sf["payee"].presence : nil,
-        description: sf.is_a?(Hash) ? sf["description"].presence : nil,
-        memo: sf.is_a?(Hash) ? sf["memo"].presence : nil
-      }.compact
-
-      extras = []
-      if sf.is_a?(Hash) && sf["extra"].is_a?(Hash) && sf["extra"].present?
-        sf["extra"].each do |k, v|
-          display = (v.is_a?(Hash) || v.is_a?(Array)) ? v.to_json : v
-          extras << {
-            key: k.to_s.humanize,
-            value: display,
-            title: (v.is_a?(String) ? v : display.to_s)
-          }
-        end
-      end
-
-      {
-        kind: :simplefin,
-        simplefin: simple,
-        provider_extras: extras,
-        raw: nil
-      }
-    else
-      pretty = begin
-        JSON.pretty_generate(extra)
-      rescue StandardError
-        extra.to_s
-      end
-      {
-        kind: :raw,
-        simplefin: {},
-        provider_extras: [],
-        raw: pretty
-      }
+    pretty = begin
+      JSON.pretty_generate(extra)
+    rescue StandardError
+      extra.to_s
     end
+    {
+      kind: :raw,
+      simplefin: {},
+      provider_extras: [],
+      raw: pretty
+    }
   end
 end

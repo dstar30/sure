@@ -1,0 +1,24 @@
+---
+en:
+  net_worth:
+    current_title: "Net Worth"
+    projections:
+      title: "Future Projections"
+      insufficient_data: "At least 6 months of transaction history required for projections."
+      select_timeframes: "Show projections for:"
+      scenarios: "Scenarios"
+      scenario_conservative: "Conservative (70%)"
+      scenario_realistic: "Realistic (100%)"
+      scenario_optimistic: "Optimistic (130%)"
+      timeframe_years:
+        one: "%{count} year"
+        other: "%{count} years"
+      growth_rate:
+        label: "Historical growth rate"
+        monthly: "Per month"
+        annual: "Per year"
+      data_quality:
+        volatility:
+          low: "Stable growth pattern"
+          medium: "Moderate volatility"
+          high: "High volatility - projections are estimates"

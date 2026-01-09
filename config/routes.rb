@@ -50,6 +50,7 @@ Rails.application.routes.draw do
   get "changelog", to: "pages#changelog"
   get "feedback", to: "pages#feedback"
   patch "dashboard/preferences", to: "pages#update_preferences"
+  get "net_worth_projections", to: "pages#net_worth_projections"
 
   resource :current_session, only: %i[update]
 

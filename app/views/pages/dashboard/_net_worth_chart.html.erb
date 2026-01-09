@@ -35,4 +35,137 @@
     </div>
   <% end %>
 
+  <%# Net Worth Projection Section %>
+  <% net_worth_service = NetWorth.new(Current.family) %>
+  <% can_project = net_worth_service.can_project? %>
+
+  <div
+    data-controller="net-worth-projection"
+    data-net-worth-projection-can-project-value="<%= can_project %>"
+    class="mt-6 pt-6 border-t border-primary px-4">
+
+    <%# Toggle button %>
+    <button
+      data-action="click->net-worth-projection#toggleExpanded"
+      data-net-worth-projection-target="toggleButton"
+      class="flex items-center justify-between w-full text-left">
+      <span class="text-sm font-medium text-primary">
+        <%= t("net_worth.projections.title") %>
+      </span>
+      <%= icon "chevron-down",
+          class: "w-4 h-4 text-subdued transition-transform",
+          data: { net_worth_projection_target: "chevronIcon" } %>
+    </button>
+
+    <%# Expandable content %>
+    <div
+      data-net-worth-projection-target="content"
+      class="hidden mt-4">
+
+      <%# Insufficient data warning %>
+      <div
+        data-net-worth-projection-target="insufficientDataWarning"
+        class="hidden p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <p class="text-sm text-yellow-800">
+          <%= icon "alert-circle", class: "inline w-4 h-4 mr-1" %>
+          <%= t("net_worth.projections.insufficient_data") %>
+        </p>
+      </div>
+
+      <%# Timeframe selector %>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-primary mb-2">
+          <%= t("net_worth.projections.select_timeframes") %>
+        </label>
+        <div class="flex flex-wrap gap-2">
+          <% [1, 2, 3, 5, 10, 20].each do |years| %>
+            <label class="inline-flex items-center">
+              <input
+                type="checkbox"
+                value="<%= years %>"
+                data-action="change->net-worth-projection#updateTimeframes"
+                data-net-worth-projection-target="timeframeCheckbox"
+                <%= "checked" if [1, 5, 10].include?(years) %>
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+              <span class="ml-2 text-sm text-primary">
+                <%= t("net_worth.projections.timeframe_years", count: years) %>
+              </span>
+            </label>
+          <% end %>
+        </div>
+      </div>
+
+      <%# Scenario toggles %>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-primary mb-2">
+          <%= t("net_worth.projections.scenarios") %>
+        </label>
+        <div class="flex gap-4">
+          <label class="inline-flex items-center">
+            <input
+              type="checkbox"
+              value="conservative"
+              data-action="change->net-worth-projection#updateScenarios"
+              data-net-worth-projection-target="scenarioCheckbox"
+              checked
+              class="rounded border-gray-300 text-orange-600 focus:ring-orange-500">
+            <span class="ml-2 text-sm text-primary">
+              <%= t("net_worth.projections.scenario_conservative") %>
+            </span>
+          </label>
+          <label class="inline-flex items-center">
+            <input
+              type="checkbox"
+              value="realistic"
+              data-action="change->net-worth-projection#updateScenarios"
+              data-net-worth-projection-target="scenarioCheckbox"
+              checked
+              class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            <span class="ml-2 text-sm text-primary">
+              <%= t("net_worth.projections.scenario_realistic") %>
+            </span>
+          </label>
+          <label class="inline-flex items-center">
+            <input
+              type="checkbox"
+              value="optimistic"
+              data-action="change->net-worth-projection#updateScenarios"
+              data-net-worth-projection-target="scenarioCheckbox"
+              checked
+              class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+            <span class="ml-2 text-sm text-primary">
+              <%= t("net_worth.projections.scenario_optimistic") %>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <%# Loading state %>
+      <div
+        data-net-worth-projection-target="loadingIndicator"
+        class="hidden flex items-center justify-center py-8">
+        <%= icon "loader-2", class: "w-6 h-6 animate-spin text-subdued" %>
+      </div>
+
+      <%# Chart container %>
+      <div
+        data-net-worth-projection-target="chartContainer"
+        class="h-64">
+      </div>
+
+      <%# Milestone summary %>
+      <div
+        data-net-worth-projection-target="milestones"
+        class="mt-4 grid grid-cols-3 gap-4">
+      </div>
+
+      <%# Data quality warning %>
+      <div
+        data-net-worth-projection-target="qualityWarning"
+        class="hidden mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <p class="text-xs text-blue-800" data-net-worth-projection-target="qualityWarningText"></p>
+      </div>
+    </div>
+  </div>
+
 </div>

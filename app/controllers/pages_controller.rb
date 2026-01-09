@@ -54,6 +54,52 @@ class PagesController < ApplicationController
     render layout: "blank"
   end
 
+  # GET /net_worth_projections
+  # Returns net worth projection data for Home page card
+  def net_worth_projections
+    timeframes = parse_timeframe_params
+
+    net_worth = NetWorth.new(Current.family)
+
+    # Check if projections can be generated
+    unless net_worth.can_project?
+      render json: {
+        error: "insufficient_data",
+        message: I18n.t("net_worth.projections.insufficient_data")
+      }, status: :unprocessable_entity
+      return
+    end
+
+    # Generate projections
+    @projections = net_worth.projections(timeframes: timeframes)
+    @current_net_worth = net_worth.current
+
+    respond_to do |format|
+      format.json do
+        render json: {
+          current_net_worth: {
+            amount: @current_net_worth.to_s,
+            formatted: @current_net_worth.format
+          },
+          growth_rate: {
+            monthly: {
+              amount: @projections[:growth_rate][:monthly].to_s,
+              formatted: @projections[:growth_rate][:monthly].format
+            },
+            annual: {
+              amount: @projections[:growth_rate][:annual].to_s,
+              formatted: @projections[:growth_rate][:annual].format
+            },
+            percent: @projections[:growth_rate][:percent]
+          },
+          scenarios: format_scenarios_for_json(@projections[:scenarios]),
+          data_quality: @projections[:data_quality],
+          timeframes: @projections[:timeframes]
+        }
+      end
+    end
+  end
+
   private
     def preferences_params
       prefs = params.require(:preferences)
@@ -233,5 +279,82 @@ class PagesController < ApplicationController
         end
 
       { categories: categories, total: total.to_f.round(2), currency: family_currency, currency_symbol: Money::Currency.new(family_currency).symbol }
+    end
+
+    # Parse timeframe parameters from request
+    #
+    # @return [Array<Integer>] Array of timeframe years
+    def parse_timeframe_params
+      if params[:timeframes].present?
+        params[:timeframes].split(',').map(&:to_i).select { |t| t > 0 }
+      else
+        [1, 5, 10] # Default timeframes
+      end
+    end
+
+    # Format scenario data for JSON response
+    #
+    # @param scenarios [Hash] Scenario data from projection engine
+    # @return [Hash] JSON-ready scenario data
+    def format_scenarios_for_json(scenarios)
+      formatted = {}
+
+      scenarios.each do |scenario_name, scenario_data|
+        formatted[scenario_name] = {
+          milestones: format_milestones(scenario_data[:milestones]),
+          values: format_projection_values(scenario_data[:values]),
+          final_value: {
+            amount: scenario_data[:final_value].to_s,
+            formatted: scenario_data[:final_value].format
+          },
+          total_growth: {
+            amount: scenario_data[:total_growth].to_s,
+            formatted: scenario_data[:total_growth].format
+          }
+        }
+      end
+
+      formatted
+    end
+
+    # Format milestone data for JSON
+    #
+    # @param milestones [Hash] Milestone data by year
+    # @return [Hash] JSON-ready milestone data
+    def format_milestones(milestones)
+      formatted = {}
+
+      milestones.each do |years, milestone_data|
+        formatted[years] = {
+          date: milestone_data[:date].strftime("%Y-%m-%d"),
+          value: {
+            amount: milestone_data[:value].to_s,
+            formatted: milestone_data[:value].format
+          },
+          growth_from_current: {
+            amount: milestone_data[:growth_from_current].to_s,
+            formatted: milestone_data[:growth_from_current].format
+          }
+        }
+      end
+
+      formatted
+    end
+
+    # Format projection value points for chart
+    #
+    # @param values [Array<Hash>] Projection data points
+    # @return [Array<Hash>] JSON-ready chart data
+    def format_projection_values(values)
+      values.map do |point|
+        {
+          date: point[:date].strftime("%Y-%m-%d"),
+          value: {
+            amount: point[:value].to_s,
+            formatted: point[:value].format
+          },
+          months_from_now: point[:months_from_now]
+        }
+      end
     end
 end
